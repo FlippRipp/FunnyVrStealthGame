@@ -22,17 +22,26 @@ public:
     UStaticMeshComponent* LeftShadowOrbMesh;
     UPROPERTY(EditDefaultsOnly)
     UStaticMeshComponent* RightShadowOrbMesh;
-
+	
 	UPROPERTY(EditDefaultsOnly)
 	float VerticalMultiplicationFactor = 1;
     UPROPERTY(EditDefaultsOnly)
     float HorizontalMultiplicationFactor = 3;
+	UPROPERTY(EditDefaultsOnly)
+	float ShadowOrbSpeed = 500;
+
+	
     UFUNCTION(BlueprintCallable)
     void UpdateControllerPosition(FVector RightController, FVector LeftController, FVector HMD);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	FVector LeftShadowOrbTargetPosition;
+	FVector RightShadowOrbTargetPosition;
+
+	void CalculateCollision(UStaticMeshComponent* collider, FVector DeltaMove);
 
 public:	
 	// Called every frame

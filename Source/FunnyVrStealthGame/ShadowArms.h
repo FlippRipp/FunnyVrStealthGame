@@ -28,6 +28,9 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly)
 	float HorizontalMultiplicationFactor = 3;
+	UPROPERTY(EditDefaultsOnly)
+	float ShadowOrbSpeed;
+	
 	UFUNCTION(BlueprintCallable)
 	FVector GetShadowArmLocation(FVector Controller, FVector HMD);
 protected:
