@@ -2,19 +2,23 @@
 
 
 #include "ShadowPlayerPawn.h"
+#include "Components/SphereComponent.h"
+
 
 // Sets default values
 AShadowPlayerPawn::AShadowPlayerPawn()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	LeftShadowOrbMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftShadowOrb"));
-	RightShadowOrbMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightShadowOrb"));
+	
+	
+	LeftOrbCollider = CreateDefaultSubobject<USphereComponent>(TEXT("LeftOrbRoot"));
+	RightOrbCollider = CreateDefaultSubobject<USphereComponent>(TEXT("RightOrbRoot"));
+
 
 	ShadowRoot = CreateDefaultSubobject<USceneComponent>(TEXT("ShadowRoot"));
 
 	SetRootComponent(ShadowRoot);
-
 }
 
 void AShadowPlayerPawn::UpdateControllerPosition(FVector RightController, FVector LeftController, FVector HMD)
@@ -39,22 +43,42 @@ void AShadowPlayerPawn::BeginPlay()
 	
 }
 
-void AShadowPlayerPawn::CalculateCollision(UStaticMeshComponent* collider, FVector DeltaMove)
+void AShadowPlayerPawn::CalculateCollision(USphereComponent* collider, FVector DeltaMove)
 {
-	FHitResult Hit;
-	collider->AddWorldOffset(DeltaMove, true, &Hit);
+	
 
-	while (Hit.bBlockingHit)
+	int i = 0;
+	
+	while (!DeltaMove.IsNearlyZero() && i < 5)
 	{
-		if(Hit.bStartPenetrating)
-		{
-			FVector DepenVector = Hit.Normal * Hit.PenetrationDepth;
-			collider->AddWorldOffset(DepenVector, false);
-		}
+		FHitResult Hit;
+		collider->AddWorldOffset(DeltaMove, true, &Hit);
+		
+		DeltaMove -= DeltaMove * Hit.Time;
 
-		DeltaMove -= FVector::DotProduct(DeltaMove, Hit.Normal) * Hit.Normal;
+		if (Hit.bBlockingHit)
+		{
+
+			
+			UE_LOG(LogTemp, Log, TEXT("COll"))
+
+			if(Hit.bStartPenetrating)
+			{
+				FVector DepenVector = Hit.Normal * Hit.PenetrationDepth;
+				collider->AddWorldOffset(DepenVector, false);
+			}
+	
+			DeltaMove -= FVector::DotProduct(DeltaMove, Hit.Normal) * Hit.Normal;
+			collider->AddWorldOffset(DeltaMove, true, &Hit);
+			i++;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("non COLL"))
+			break;
+		}
 	}
-	collider->AddWorldOffset(DeltaMove, true, &Hit);
+	
 }
 
 // Called every frame
@@ -62,11 +86,17 @@ void AShadowPlayerPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	FVector MoveLeft = (LeftShadowOrbTargetPosition - LeftShadowOrbMesh->GetComponentLocation()).GetSafeNormal()
-	* ShadowOrbSpeed * DeltaTime;
-	FVector MoveRight = (RightShadowOrbTargetPosition - RightShadowOrbMesh->GetComponentLocation()).GetSafeNormal()
-	* ShadowOrbSpeed * DeltaTime;
-	CalculateCollision(LeftShadowOrbMesh, MoveLeft);
+	FVector LeftDifference = LeftShadowOrbTargetPosition - LeftOrbCollider->GetComponentLocation();
+	FVector MoveLeft = LeftDifference.GetSafeNormal()* ShadowOrbSpeed * DeltaTime;
+	MoveLeft = MoveLeft.GetClampedToMaxSize(LeftDifference.Size());
+
+
+	FVector RightDiffrence = RightShadowOrbTargetPosition - RightOrbCollider->GetComponentLocation();
+	FVector MoveRight = RightDiffrence.GetSafeNormal() * ShadowOrbSpeed * DeltaTime;
+	MoveRight = MoveRight.GetClampedToMaxSize(RightDiffrence.Size());
+
+	CalculateCollision(LeftOrbCollider, MoveLeft);
+	CalculateCollision(RightOrbCollider, MoveRight);
 }
 
 // Called to bind functionality to input

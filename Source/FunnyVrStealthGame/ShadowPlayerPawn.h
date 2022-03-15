@@ -3,8 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "GameFramework/Pawn.h"
 #include "ShadowPlayerPawn.generated.h"
+
+class USphereComponent;
 
 UCLASS()
 class FUNNYVRSTEALTHGAME_API AShadowPlayerPawn : public APawn
@@ -17,12 +20,12 @@ public:
 	
     UPROPERTY(EditDefaultsOnly)
     USceneComponent* ShadowRoot;
-	
-    UPROPERTY(EditDefaultsOnly)
-    UStaticMeshComponent* LeftShadowOrbMesh;
-    UPROPERTY(EditDefaultsOnly)
-    UStaticMeshComponent* RightShadowOrbMesh;
-	
+
+	UPROPERTY(EditDefaultsOnly)
+	USphereComponent* LeftOrbCollider;
+	UPROPERTY(EditDefaultsOnly)
+	USphereComponent* RightOrbCollider;
+		
 	UPROPERTY(EditDefaultsOnly)
 	float VerticalMultiplicationFactor = 1;
     UPROPERTY(EditDefaultsOnly)
@@ -41,7 +44,7 @@ protected:
 	FVector LeftShadowOrbTargetPosition;
 	FVector RightShadowOrbTargetPosition;
 
-	void CalculateCollision(UStaticMeshComponent* collider, FVector DeltaMove);
+	void CalculateCollision(USphereComponent* collider, FVector DeltaMove);
 
 public:	
 	// Called every frame
