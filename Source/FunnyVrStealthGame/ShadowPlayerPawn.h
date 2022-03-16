@@ -44,7 +44,7 @@ protected:
 	FVector LeftShadowOrbTargetPosition;
 	FVector RightShadowOrbTargetPosition;
 
-	void CalculateCollision(USphereComponent* collider, FVector DeltaMove);
+	void CalculateCollision(USphereComponent* collider, FVector Move, float DeltaTime);
 
 public:	
 	// Called every frame

@@ -43,24 +43,34 @@ void AShadowPlayerPawn::BeginPlay()
 	
 }
 
-void AShadowPlayerPawn::CalculateCollision(USphereComponent* collider, FVector DeltaMove)
+void AShadowPlayerPawn::CalculateCollision(USphereComponent* collider, FVector DeltaMove, float DeltaTime)
 {
-	
-
 	int i = 0;
+
+	FVector ImpactForce = DeltaMove / DeltaTime;
+
+	
 	
 	while (!DeltaMove.IsNearlyZero() && i < 5)
 	{
 		FHitResult Hit;
 		collider->AddWorldOffset(DeltaMove, true, &Hit);
+ 
 		
 		DeltaMove -= DeltaMove * Hit.Time;
 
 		if (Hit.bBlockingHit)
 		{
-
 			
-			UE_LOG(LogTemp, Log, TEXT("COll"))
+			UPrimitiveComponent* PhysicsObject =  Cast<UPrimitiveComponent>( Hit.Actor->GetRootComponent());
+			
+			if(PhysicsObject && PhysicsObject->IsSimulatingPhysics())
+			{
+				UE_LOG(LogTemp, Log, TEXT("Collided With Physics Object"))
+				PhysicsObject->SetAllPhysicsLinearVelocity(ImpactForce);
+			}
+			
+			
 
 			if(Hit.bStartPenetrating)
 			{
@@ -74,7 +84,6 @@ void AShadowPlayerPawn::CalculateCollision(USphereComponent* collider, FVector D
 		}
 		else
 		{
-			UE_LOG(LogTemp, Log, TEXT("non COLL"))
 			break;
 		}
 	}
@@ -95,8 +104,8 @@ void AShadowPlayerPawn::Tick(float DeltaTime)
 	FVector MoveRight = RightDiffrence.GetSafeNormal() * ShadowOrbSpeed * DeltaTime;
 	MoveRight = MoveRight.GetClampedToMaxSize(RightDiffrence.Size());
 
-	CalculateCollision(LeftOrbCollider, MoveLeft);
-	CalculateCollision(RightOrbCollider, MoveRight);
+	CalculateCollision(LeftOrbCollider, MoveLeft, DeltaTime);
+	CalculateCollision(RightOrbCollider, MoveRight, DeltaTime);
 }
 
 // Called to bind functionality to input
